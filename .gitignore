@@ -1,0 +1,11 @@
+node_modules/
+dist/
+edge-functions/
+.env*
+!.env.example
+.edgeone/
+test-results/
+playwright-report/
+*.local
+scripts/baseline/bin/
+scripts/baseline/obj/
