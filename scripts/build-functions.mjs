@@ -1,8 +1,8 @@
 import { build } from "esbuild";
-// Verified against edgeone CLI 1.6.34 init template: edge-functions + named onRequest.
+// Build the versioned platform route into a separate local verification bundle.
 await build({
-  entryPoints: { "api/wcl/[[path]]": "server/entry.ts" },
-  outdir: "edge-functions",
+  entryPoints: { "api/wcl/[[path]]": "edge-functions/api/wcl/[[path]].ts" },
+  outdir: ".edge-build",
   bundle: true,
   format: "esm",
   platform: "browser",

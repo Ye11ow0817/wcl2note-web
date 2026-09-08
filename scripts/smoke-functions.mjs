@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { onRequest } from "../edge-functions/api/wcl/[[path]].js";
+import { onRequest } from "../.edge-build/api/wcl/[[path]].js";
 
 const health = await onRequest({
   request: new Request("https://fixture.local/api/wcl/health"),

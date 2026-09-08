@@ -40,7 +40,7 @@ npm run test:e2e
 
 E2E 使用本机 Microsoft Edge，含桌面和 390px 窄屏。测试接口使用脱敏 fixture，不代表真实 WCL/EdgeOne 网络已经验证。
 
-`npm run build` 生成前端 `dist/` 和中国站 Pages 路由 `edge-functions/api/wcl/[[path]].js`。部署必须同时包含函数。`npm run preview` 只预览静态前端，真实 API 本地联调用 `npm run dev`。
+`edge-functions/api/wcl/[[path]].ts` 是必须提交到 Git 的函数源码入口。`npm run build` 生成前端 `dist/`，并将函数编译到仅用于本地验证的 `.edge-build/`。Makers 从仓库中的 `edge-functions/` 发布函数；不要忽略该源码目录。`npm run preview` 只预览静态前端，真实 API 本地联调用 `npm run dev`。
 
 ## 目录
 

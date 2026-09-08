@@ -1,6 +1,6 @@
 node_modules/
 dist/
-edge-functions/
+.edge-build/
 .env*
 !.env.example
 .edgeone/

@@ -4,7 +4,7 @@ export default ts.config(
   {
     ignores: [
       "dist/**",
-      "edge-functions/**",
+      ".edge-build/**",
       "node_modules/**",
       "playwright-report/**",
       "test-results/**",
