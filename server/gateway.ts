@@ -188,12 +188,23 @@ async function body(request: Request) {
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    size += value.length;
+    // EdgeOne streams also return ArrayBuffer and string chunks.
+    const raw: unknown = value;
+    const chunk =
+      typeof raw === "string"
+        ? new TextEncoder().encode(raw)
+        : ArrayBuffer.isView(raw)
+          ? new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength)
+          : raw instanceof ArrayBuffer
+            ? new Uint8Array(raw)
+            : undefined;
+    if (!chunk) throw new ApiError(400, "BODY", "无法读取请求内容。");
+    size += chunk.byteLength;
     if (size > 16384) {
       await reader.cancel();
       throw new ApiError(413, "SIZE", "请求内容过大。");
     }
-    chunks.push(value);
+    chunks.push(chunk);
   }
   const all = new Uint8Array(size);
   let pos = 0;

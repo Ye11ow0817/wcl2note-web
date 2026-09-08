@@ -62,3 +62,15 @@ dotnet run --project scripts/baseline/Baseline.csproj -p:DesktopRoot=F:/CodexPro
 ```
 
 By Ye11ow
+
+## Windows 快速本地运行
+
+需要 Node.js 22.11 或更新版本；完整浏览器测试还需要 Microsoft Edge。
+
+- 双击根目录 `local-test.cmd`，或运行 `.\local-test.cmd`：启动本地网页，访问 http://127.0.0.1:5173。首次安装依赖，并在缺少本地会话密钥时自动生成。保持窗口打开，Ctrl+C 停止。
+- `.\local-test.cmd test`：重新安装锁定依赖，依次运行单元测试、lint、构建和函数烟测；失败立即停止。
+- `.\local-test.cmd all`：在上述检查后运行桌面和移动尺寸浏览器测试。
+
+本地服务读取根目录 `.env.local`。`WCL_CLIENT_ID` 和 `WCL_CLIENT_SECRET` 是你在 WCL API 客户端页面申请的凭据，用于默认认证。也可以留空，在网页设置中填写自己的凭据进行认证。`SESSION_KEY` 是本应用用于加密自定义认证会话的 64 位十六进制密钥，由脚本生成，无需向 WCL 申请。
+
+脚本不显示密钥，也不覆盖已有凭据或非空会话密钥；`.env.local` 已被 Git 忽略。修改后重启本地服务。自动化测试使用测试数据，不要求真实凭据；本地通过不代表 EdgeOne 环境、网络和部署已经验证。线上环境变量仍需在 Makers 单独配置。

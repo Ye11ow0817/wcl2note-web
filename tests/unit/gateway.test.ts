@@ -99,17 +99,15 @@ describe("固定网关与认证边界", () => {
   it("认证返回安全 Cookie，浏览器响应不含 token/Secret", async () => {
     vi.stubGlobal(
       "fetch",
-      vi
-        .fn()
-        .mockResolvedValue(
-          new Response(
-            JSON.stringify({
-              access_token: "unique-token",
-              token_type: "Bearer",
-              expires_in: 3600,
-            }),
-          ),
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            access_token: "unique-token",
+            token_type: "Bearer",
+            expires_in: 3600,
+          }),
         ),
+      ),
     );
     const r = await gateway(
       request("session", { clientId: "abc", clientSecret: "private-secret" }),
@@ -207,5 +205,50 @@ describe("固定网关与认证边界", () => {
       expect(r.status).toBe(200);
       expect(await r.text()).not.toContain("shared-private-token");
     }
+  });
+});
+
+// Reproduce EdgeOne's stream types without Node's Request body normalization.
+describe("EdgeOne 请求流兼容", () => {
+  const make = (chunks: unknown[]) => {
+    const req = request("query", payload);
+    Object.defineProperty(req, "body", {
+      value: new ReadableStream({
+        start(controller) {
+          for (const chunk of chunks) controller.enqueue(chunk);
+          controller.close();
+        },
+      }),
+    });
+    return req;
+  };
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  const padded = new Uint8Array(bytes.length + 8);
+  padded.set(bytes, 4);
+  it.each([
+    ["ArrayBuffer", [bytes.slice(0, 9).buffer, bytes.slice(9).buffer]],
+    ["string", [JSON.stringify(payload)]],
+    ["Uint8Array", [bytes.slice(0, 9), bytes.slice(9)]],
+    ["offset view", [new DataView(padded.buffer, 4, bytes.length)]],
+  ])("正确解析 %s", async (_name, chunks) => {
+    const response = await gateway(make(chunks as unknown[]), {});
+    expect(response.status).toBe(503);
+    expect(await response.json()).toMatchObject({ error: { code: "CONFIG" } });
+  });
+  it("ArrayBuffer 超过 16 KiB 时拒绝", async () => {
+    expect((await gateway(make([new ArrayBuffer(16385)]), {})).status).toBe(
+      413,
+    );
+  });
+  it("字符串按 UTF-8 字节数限制", async () => {
+    expect((await gateway(make(["中".repeat(6000)]), {})).status).toBe(413);
+  });
+  it("损坏 JSON 仍然拒绝", async () => {
+    const response = await gateway(
+      make([new TextEncoder().encode("{").buffer]),
+      {},
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ error: { code: "JSON" } });
   });
 });
